@@ -1,0 +1,56 @@
+/* ChatBotFloating.css */
+
+.chatbot-container {
+    position: fixed;
+    bottom: 50px;
+    right: 50px;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    z-index: 999;
+  }
+  
+  .chatbot-bubble {
+    background-color: #f875aa;
+    color: #222;
+    padding: 12px 16px;
+    border-radius: 16px;
+    border: 3px solid #f875aa;
+    font-weight: bold;
+    max-width: 300px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .chatbot-img {
+    width: 60px;
+    height: auto;
+  }
+  
+  .chatbot-bubble::after {
+    content: "";
+    position: absolute;
+    bottom: 10px;
+    
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 12px solid #f875aa; 
+  }
+
+  @media (max-width: 600px) {
+    .chatbot-container {
+      right: 16px;
+      bottom: 16px;
+    }
+  
+    .chatbot-bubble {
+      font-size: 14px;
+      max-width: 160px;
+    }
+  
+    .chatbot-img {
+      width: 48px;
+    }
+  }
+  
