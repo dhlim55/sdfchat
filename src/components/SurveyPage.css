@@ -81,4 +81,21 @@
       width: 100%;
     }
   }
+  .submit-row {
+    display: flex;
+    justify-content: center; /* 가운데 정렬 */
+    margin-top: 12px;
+  }
+  
+  .button-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* 버튼과 글자수 사이 간격 */
+  }
+  
+  .char-count {
+    font-size: 14px;
+    color: #666;
+  }
+  
   
