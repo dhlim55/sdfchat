@@ -4,6 +4,7 @@ import ChatBotFloating from "./ChatBotFloating";
 import { db } from "../firebase";
 import { collection, addDoc } from "firebase/firestore";
 import "./SurveyPage.css";
+import { doc, setDoc } from "firebase/firestore";
 
 function findBiggestGapKey(human, ideal) {
   const keys = ["specificity", "relevance", "informativeness", "clarity"];
@@ -26,7 +27,6 @@ export default function SurveyPage({ userID }) {
     "현재 우리가 직면한 환경 문제의 주요 원인은 무엇이라고 생각하시나요? 그러한 원인이 발생하게 된 배경이나 사회적 요인에는 어떤 것들이 있다고 보시나요?",
     "인공지능의 발전이 사회에 미치는 영향에 대해 어떻게 평가하시나요? 긍정적인 점과 우려되는 점이 있다면 무엇인가요?",
     "친환경 에너지가 미래의 주요 에너지원이 될 수 있다고 보십니까? 그에 따른 장점과 단점은 무엇이라고 생각하시나요?"
-  
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -38,11 +38,11 @@ export default function SurveyPage({ userID }) {
   const [submitted, setSubmitted] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [charCount, setCharCount] = useState(0);
-
+  const [followUpStep, setFollowUpStep] = useState(0);
 
   const question = questions[currentIndex];
 
-  async function analyzeAndEvaluate(answer, isFollowup = false) {
+  async function analyzeAndEvaluate(answer, isFollowup = false, step = 0) {
     setIsEvaluating(true);
 
     const SLResponse = idealAnswer || (await getIdealAnswer(question));
@@ -55,17 +55,6 @@ export default function SurveyPage({ userID }) {
     const HScoreD = humanScore.clarity;
     const HScoreT = HScoreA + HScoreB + HScoreC + HScoreD;
 
-    console.log("사용자 응답 평가 점수:");
-    console.log("Specificity:", HScoreA);
-    console.log("→", humanScore.specificity_reason);
-    console.log("Relevance:", HScoreB);
-    console.log("→", humanScore.relevance_reason);
-    console.log("Informativeness:", HScoreC);
-    console.log("→", humanScore.informativeness_reason);
-    console.log("Clarity:", HScoreD);
-    console.log("→", humanScore.clarity_reason);
-    console.log("Total Score:", HScoreT);
-
     const idealScore = await evaluateAnswerLLM(SLResponse);
     const ScoreA = idealScore.specificity;
     const ScoreB = idealScore.relevance;
@@ -73,18 +62,6 @@ export default function SurveyPage({ userID }) {
     const ScoreD = idealScore.clarity;
     const ScoreT = ScoreA + ScoreB + ScoreC + ScoreD;
 
-    console.log("이상적(llm) 응답 평가 점수:");
-    console.log("Specificity:", ScoreA);
-    console.log("Relevance:", ScoreB);
-    console.log("Informativeness:", ScoreC);
-    console.log("Clarity:", ScoreD);
-    console.log("Total Score:", ScoreT);
-
-    console.log("✅ Human Score T:", HScoreT);
-    console.log("✅ LLM Score T:", ScoreT);
-    console.log("________________________________");
-
-    // 기본값은 null로 설정 (follow-up이 없을 수도 있으니까)
     let followUpQuestion = null;
 
     if (HScoreT < ScoreT) {
@@ -106,7 +83,7 @@ export default function SurveyPage({ userID }) {
       setFollowUp(followUpQuestion);
       setShowBot(true);
     } else {
-      goToNextQuestion(); // 점수 만족 시 다음 질문으로
+      goToNextQuestion();
     }
 
     await submitToFirebase(
@@ -116,7 +93,8 @@ export default function SurveyPage({ userID }) {
       { HScoreA, HScoreB, HScoreC, HScoreD, HScoreT },
       { ScoreA, ScoreB, ScoreC, ScoreD, ScoreT },
       followUpQuestion,
-      isFollowup
+      isFollowup,
+      step
     );
 
     setIsEvaluating(false);
@@ -128,14 +106,17 @@ export default function SurveyPage({ userID }) {
       return;
     }
     setSubmitted(true);
-    await analyzeAndEvaluate(userAnswer, false);
+    await analyzeAndEvaluate(userAnswer, false, 0); // 초기 질문은 step 0
   }
 
   async function handleFollowupSubmit(updatedAnswer) {
+    const nextStep = followUpStep + 1;
     setUserAnswer(updatedAnswer);
     setShowBot(false);
     setSubmitted(true);
-    await analyzeAndEvaluate(updatedAnswer, true);
+    setFollowUpStep(nextStep); // 상태 업데이트
+
+    await analyzeAndEvaluate(updatedAnswer, true, nextStep); // 실제 저장에 사용
   }
 
   async function submitToFirebase(
@@ -144,12 +125,18 @@ export default function SurveyPage({ userID }) {
     idealAnswer,
     humanScores,
     llmScores,
-    followUpQuestion = null,
-    isFollowup = false
+    followUpQuestion,
+    isFollowup ,
+    step = 0
   ) {
-    await addDoc(collection(db, "surveyResponses"), {
+    const now = new Date();
+    const timestamp = `${now.getHours()}${now.getMinutes()}${now.getSeconds()}`; // 예: "81515"
+    const docID = `${userID}_q${currentIndex + 1}_s${step}_t${timestamp}`;
+
+    await setDoc(doc(collection(db, "surveyResponses"), docID), {
       userID,
       question,
+      followUpStep: step,
       answer,
       idealAnswer,
       HScoreA: humanScores.HScoreA,
@@ -162,12 +149,10 @@ export default function SurveyPage({ userID }) {
       ScoreC: llmScores.ScoreC,
       ScoreD: llmScores.ScoreD,
       ScoreT: llmScores.ScoreT,
-      followUpQuestion: followUpQuestion,
-      isFollowup: isFollowup,
-      timestamp: new Date(),
+      followUpQuestion,
+      isFollowup,
+      timestamp: now,
     });
-
-    console.log("✅ Firebase에 저장됨:", { isFollowup, followUpQuestion });
   }
 
   function goToNextQuestion() {
@@ -178,6 +163,7 @@ export default function SurveyPage({ userID }) {
       setShowBot(false);
       setFollowUp("");
       setSubmitted(false);
+      setFollowUpStep(0); // 초기화
     } else {
       setCompleted(true);
     }
@@ -194,6 +180,8 @@ export default function SurveyPage({ userID }) {
         <section className="survey-section">
           <h2>모든 질문이 완료되었습니다.</h2>
           <p>참여해주셔서 감사합니다.</p>
+          <p>아래 링크로 접속해 폼을 작성해주시면, 빠른 사례비 지급에 도움이 됩니다.</p>
+          <p><a href="https://forms.gle/FwNUCTzx3kFQYqEj6" target="_blank">https://forms.gle/FwNUCTzx3kFQYqEj6</a></p>
         </section>
       </div>
     );
@@ -205,12 +193,9 @@ export default function SurveyPage({ userID }) {
         <h1>Survey 2025</h1>
         <p>@Ewha HCIL Lab</p>
       </header>
-
       <hr />
-
       <section className="survey-section">
         <h2>Section 1</h2>
-
         <div className="question-block">
           <label>Q{currentIndex + 1}. {question}</label>
           <textarea
@@ -221,9 +206,7 @@ export default function SurveyPage({ userID }) {
             }}
             placeholder="여기에 입력하세요..."
           />
-
         </div>
-
         <div className="submit-row">
           <div className="button-wrapper">
             <button
@@ -236,10 +219,7 @@ export default function SurveyPage({ userID }) {
             <span className="char-count">{charCount}자/300자</span>
           </div>
         </div>
-
-
       </section>
-
       {showBot && (
         <ChatBotFloating
           message={followUp}
