@@ -180,6 +180,7 @@ export default function SurveyPage({ userID }) {
         <section className="survey-section">
           <h2>모든 질문이 완료되었습니다.</h2>
           <p>참여해주셔서 감사합니다.</p>
+          <p>참가자님이 응답하신 설문은 케이스3 입니다.</p>
           <p>아래 링크로 접속해 폼을 작성해주시면, 소정의 기프티콘이 지급됩니다!</p>
           <p><a href="https://forms.gle/FwNUCTzx3kFQYqEj6" target="_blank">https://forms.gle/FwNUCTzx3kFQYqEj6</a></p>
         </section>
