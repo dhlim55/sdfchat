@@ -56,13 +56,13 @@ export async function evaluateAnswerLLM(answerToScore, question) {
 
   아래와 같은 JSON 형식으로 출력하세요:
   {
-    "specificity": 0.7,
+    "specificity": 10,
     "specificity_reason": "일반적인 설명만 있어서 구체성이 부족합니다.",
-    "relevance": 0.8,
+    "relevance": 20,
     "relevance_reason": "질문 의도에 맞는 주제를 다루고 있어 적절합니다.",
-    "informativeness": 0.6,
+    "informativeness": 10,
     "informativeness_reason": "수사구만 많고 실질적인 정보가 부족합니다.",
-    "clarity": 0.9,
+    "clarity": 20,
     "clarity_reason": "문장이 간결하고 이해하기 쉬워 명확합니다."
   }
 `;
