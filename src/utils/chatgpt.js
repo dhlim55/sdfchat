@@ -1,4 +1,40 @@
+import responses from "../data/question_score"
+
 const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
+
+//이상적 점수 가져오기
+export function getIdealAnswerScore(question) {
+  const entry = responses.find((item) => item.question === question);
+
+  if (entry) {
+    return {
+      idealAnswer: entry.ideal_answer,
+      specificity: entry.specificity,
+      specificity_reason: entry.rationale,
+      relevance: entry.relevance,
+      relevance_reason: entry.rationale,
+      informativeness: entry.informativeness,
+      informativeness_reason: entry.rationale,
+      clarity: entry.clarity,
+      clarity_reason: entry.rationale,
+      total_score: entry.total_score
+    };
+  }
+
+  console.warn("❗ 이상적인 점수 정보 없음:", question);
+  return {
+    idealAnswer: "",
+    specificity: 0,
+    specificity_reason: "점수 정보 없음",
+    relevance: 0,
+    relevance_reason: "점수 정보 없음",
+    informativeness: 0,
+    informativeness_reason: "점수 정보 없음",
+    clarity: 0,
+    clarity_reason: "점수 정보 없음",
+    total_score: 0
+  };
+}
 
 // 1️⃣ 이상적인 답변 생성
 export async function getIdealAnswer(question) {

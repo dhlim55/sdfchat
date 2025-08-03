@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { getIdealAnswer, getFollowUpQuestion, evaluateAnswerLLM } from "../utils/chatgpt";
+import {
+  getFollowUpQuestion,
+  evaluateAnswerLLM,
+  getIdealAnswerScore
+} from "../utils/chatgpt";
 import ChatBotFloating from "./ChatBotFloating";
 import { db } from "../firebase";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, doc, setDoc } from "firebase/firestore";
 import "./SurveyPage.css";
-import { doc, setDoc } from "firebase/firestore";
 
 function findBiggestGapKey(human, ideal) {
   const keys = ["specificity", "relevance", "informativeness", "clarity"];
@@ -45,22 +48,25 @@ export default function SurveyPage({ userID }) {
   async function analyzeAndEvaluate(answer, isFollowup = false, step = 0) {
     setIsEvaluating(true);
 
-    const SLResponse = idealAnswer || (await getIdealAnswer(question));
+    // ✅ 이상적인 답변과 점수를 JSON에서 가져옴
+    const {
+      idealAnswer: SLResponse,
+      specificity: ScoreA,
+      relevance: ScoreB,
+      informativeness: ScoreC,
+      clarity: ScoreD,
+      total_score: ScoreT
+    } = getIdealAnswerScore(question);
+
     setIdealAnswer(SLResponse);
 
-    const humanScore = await evaluateAnswerLLM(answer);
+    // ✅ 사용자 응답은 여전히 GPT 평가
+    const humanScore = await evaluateAnswerLLM(answer, question);
     const HScoreA = humanScore.specificity;
     const HScoreB = humanScore.relevance;
     const HScoreC = humanScore.informativeness;
     const HScoreD = humanScore.clarity;
     const HScoreT = HScoreA + HScoreB + HScoreC + HScoreD;
-
-    const idealScore = await evaluateAnswerLLM(SLResponse);
-    const ScoreA = idealScore.specificity;
-    const ScoreB = idealScore.relevance;
-    const ScoreC = idealScore.informativeness;
-    const ScoreD = idealScore.clarity;
-    const ScoreT = ScoreA + ScoreB + ScoreC + ScoreD;
 
     let followUpQuestion = null;
 
@@ -79,7 +85,7 @@ export default function SurveyPage({ userID }) {
           clarity: ScoreD,
         }
       );
-      followUpQuestion = await getFollowUpQuestion(answer, SLResponse, gapKey);
+      followUpQuestion = await getFollowUpQuestion(answer, SLResponse, gapKey, question);
       setFollowUp(followUpQuestion);
       setShowBot(true);
     } else {
@@ -106,7 +112,7 @@ export default function SurveyPage({ userID }) {
       return;
     }
     setSubmitted(true);
-    await analyzeAndEvaluate(userAnswer, false, 0); // 초기 질문은 step 0
+    await analyzeAndEvaluate(userAnswer, false, 0);
   }
 
   async function handleFollowupSubmit(updatedAnswer) {
@@ -114,9 +120,9 @@ export default function SurveyPage({ userID }) {
     setUserAnswer(updatedAnswer);
     setShowBot(false);
     setSubmitted(true);
-    setFollowUpStep(nextStep); // 상태 업데이트
+    setFollowUpStep(nextStep);
 
-    await analyzeAndEvaluate(updatedAnswer, true, nextStep); // 실제 저장에 사용
+    await analyzeAndEvaluate(updatedAnswer, true, nextStep);
   }
 
   async function submitToFirebase(
@@ -126,11 +132,11 @@ export default function SurveyPage({ userID }) {
     humanScores,
     llmScores,
     followUpQuestion,
-    isFollowup ,
+    isFollowup,
     step = 0
   ) {
     const now = new Date();
-    const timestamp = `${now.getHours()}${now.getMinutes()}${now.getSeconds()}`; // 예: "81515"
+    const timestamp = `${now.getHours()}${now.getMinutes()}${now.getSeconds()}`;
     const docID = `${userID}_q${currentIndex + 1}_s${step}_t${timestamp}`;
 
     await setDoc(doc(collection(db, "surveyResponses"), docID), {
@@ -163,7 +169,7 @@ export default function SurveyPage({ userID }) {
       setShowBot(false);
       setFollowUp("");
       setSubmitted(false);
-      setFollowUpStep(0); // 초기화
+      setFollowUpStep(0);
     } else {
       setCompleted(true);
     }
@@ -181,8 +187,18 @@ export default function SurveyPage({ userID }) {
           <h2>모든 질문이 완료되었습니다.</h2>
           <p>참여해주셔서 감사합니다.</p>
           <p>참가자님이 응답하신 설문은 케이스3 입니다.</p>
-          <p>아래 링크로 접속해 폼을 작성해주시면, 소정의 기프티콘이 지급됩니다!</p>
-          <p><a href="https://forms.gle/FwNUCTzx3kFQYqEj6" target="_blank">https://forms.gle/FwNUCTzx3kFQYqEj6</a></p>
+          <p>
+            아래 링크로 접속해 폼을 작성해주시면, 소정의 기프티콘이 지급됩니다!
+          </p>
+          <p>
+            <a
+              href="https://forms.gle/FwNUCTzx3kFQYqEj6"
+              target="_blank"
+              rel="noreferrer"
+            >
+              https://forms.gle/FwNUCTzx3kFQYqEj6
+            </a>
+          </p>
         </section>
       </div>
     );
