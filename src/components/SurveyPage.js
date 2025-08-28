@@ -8,6 +8,7 @@ import ChatBotFloating from "./ChatBotFloating";
 import { db } from "../firebase";
 import { collection, doc, setDoc } from "firebase/firestore";
 import "./SurveyPage.css";
+import { QUESTION_BANK } from "../data/question_list";
 
 function findBiggestGapKey(human, ideal) {
   const keys = ["specificity", "relevance", "informativeness", "clarity"];
@@ -24,13 +25,14 @@ function findBiggestGapKey(human, ideal) {
 }
 
 export default function SurveyPage({ userID }) {
-  const questions = [
-    "여행 중 스마트폰을 어떤 방식으로 활용하시나요? 구체적인 예시나 유용한 기능이 있다면 함께 말씀해주세요.",
-    "현재 우리가 직면한 환경 문제의 주요 원인은 무엇이라고 생각하시나요? 그러한 원인이 발생하게 된 배경이나 사회적 요인에는 어떤 것들이 있다고 보시나요?",
-    "인공지능의 발전이 사회에 미치는 영향에 대해 어떻게 평가하시나요? 긍정적인 점과 우려되는 점이 있다면 무엇인가요?",
-    "친환경 에너지가 미래의 주요 에너지원이 될 수 있다고 보십니까? 그에 따른 장점과 단점은 무엇이라고 생각하시나요?",
-    "오늘날 인터넷이 직면한 가장 중요하고 가장 심각한 문제는 무엇이라고 생각하시며, 그 이유는 무엇인가요?",
-  ];
+//  const questions = [
+ //   "What do you think is the most important and most serious problem facing the Internet today and why?",
+ //   "In what ways do you use your smartphone while traveling? Please share any specific examples or useful features.",
+ //   "What do you think are the main causes of the environmental problems we are facing today, and what do you think are the background or social factors that led to them?",
+ //   "How do you assess the impact of the development of artificial intelligence on society? What are the positives and what are the concerns?",
+ //   "Do you think green energy can be the main source of energy in the future? What do you think are the advantages and disadvantages of this?",
+ // ];
+ const questions = QUESTION_BANK;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
