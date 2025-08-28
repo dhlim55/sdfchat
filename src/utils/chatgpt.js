@@ -1,6 +1,6 @@
 import responses from "../data/question_score"
 
-#const open api key 삽입
+const OPENAI_API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
 
 //이상적 점수 가져오기
 export function getIdealAnswerScore(question) {
