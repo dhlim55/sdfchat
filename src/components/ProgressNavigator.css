@@ -1,0 +1,36 @@
+.progress-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 16px 0;
+  }
+  
+  .progress-step {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    background-color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  /* 현재 문제 */
+  .progress-step.current {
+    border-color: #333;
+    font-weight: bold;
+  }
+  
+  /* 임계점 통과한 문제 */
+  .progress-step.passed {
+    background-color: #333;
+    color: white;
+    border-color: #333;
+  }
+  
+  /* hover */
+  .progress-step:hover {
+    transform: scale(1.05);
+  }
+  

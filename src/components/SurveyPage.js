@@ -9,6 +9,11 @@ import { db } from "../firebase";
 import { collection, doc, setDoc } from "firebase/firestore";
 import "./SurveyPage.css";
 import { QUESTION_BANK } from "../data/question_list";
+import ProgressBar from "./ProgressBar";
+import ScorePanel from "./ScorePanel";
+import ProgressNavigator from "./ProgressNavigator";
+
+
 
 function findBiggestGapKey(human, ideal) {
   const keys = ["specificity", "relevance", "informativeness", "clarity"];
@@ -47,6 +52,12 @@ export default function SurveyPage({ userID }) {
 
   const question = questions[currentIndex];
 
+  const [currentScore, setCurrentScore] = useState(null);
+  const [thresholdScore, setThresholdScore] = useState(null);
+
+  const [passedQuestions, setPassedQuestions] = useState({});
+
+
   async function analyzeAndEvaluate(answer, isFollowup = false, step = 0) {
     setIsEvaluating(true);
 
@@ -69,6 +80,21 @@ export default function SurveyPage({ userID }) {
     const HScoreC = humanScore.informativeness;
     const HScoreD = humanScore.clarity;
     const HScoreT = HScoreA + HScoreB + HScoreC + HScoreD;
+
+    setCurrentScore(HScoreT);
+    setThresholdScore(ScoreT);
+
+    if (HScoreT >= ScoreT) {
+  setPassedQuestions((prev) => ({
+    ...prev,
+    [currentIndex]: true,
+  }));
+} else {
+  setPassedQuestions((prev) => ({
+    ...prev,
+    [currentIndex]: false,
+  }));
+}
 
     let followUpQuestion = null;
 
@@ -172,6 +198,9 @@ export default function SurveyPage({ userID }) {
       setFollowUp("");
       setSubmitted(false);
       setFollowUpStep(0);
+      setCurrentScore(null);
+      setThresholdScore(null);
+
     } else {
       setCompleted(true);
     }
@@ -212,6 +241,26 @@ export default function SurveyPage({ userID }) {
         <h1>Survey 2025</h1>
         <p>@Ewha HCIL Lab</p>
       </header>
+
+          <ProgressNavigator
+      currentIndex={currentIndex}
+      total={questions.length}
+      passedQuestions={passedQuestions}
+      onNavigate={(idx) => {
+        setCurrentIndex(idx);
+        setUserAnswer("");
+        setShowBot(false);
+        setFollowUp("");
+        setSubmitted(false);
+        setFollowUpStep(0);
+      }}
+    />
+
+        {/* ✅ 진행 상황 표시 */}
+        <ProgressBar
+          current={currentIndex + 1}
+          total={questions.length}
+        />
       <hr />
       <section className="survey-section">
         <h2>Section 1</h2>
@@ -239,6 +288,14 @@ export default function SurveyPage({ userID }) {
           </div>
         </div>
       </section>
+
+      {showBot && currentScore !== null && thresholdScore !== null && (
+      <ScorePanel
+        current={currentScore}
+        threshold={thresholdScore}
+      />
+    )}
+
       {showBot && (
         <ChatBotFloating
           message={followUp}
