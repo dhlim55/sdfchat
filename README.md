@@ -1,3 +1,5 @@
+<img width="982" height="349" alt="Image" src="https://github.com/user-attachments/assets/b88f6c3b-1dd3-4ca3-ab83-6f15a5c42c98" />
+
 ## 📌 프로젝트 소개
 CoFiSA는 온라인 설문조사에서 발생하는 저품질 응답 문제를 해결하기 위해 제안된 LLM 기반 설문 조사 에이전트입니다.
 기존 온라인 설문은 비용 효율성과 확장성 측면에서 장점이 있지만, 응답이 모호하거나 질문 의도와 맞지 않거나, 의미 없는 텍스트를 입력하는 악의적 참여자(malicious participant)를 효과적으로 제어하기 어렵다는 한계가 있습니다.
