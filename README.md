@@ -1,70 +1,41 @@
-# Getting Started with Create React App
+## 📌 프로젝트 소개
+CoFiSA는 온라인 설문조사에서 발생하는 저품질 응답 문제를 해결하기 위해 제안된 LLM 기반 설문 조사 에이전트입니다.
+기존 온라인 설문은 비용 효율성과 확장성 측면에서 장점이 있지만, 응답이 모호하거나 질문 의도와 맞지 않거나, 의미 없는 텍스트를 입력하는 악의적 참여자(malicious participant)를 효과적으로 제어하기 어렵다는 한계가 있습니다.
+CoFiSA는 이러한 문제를 해결하기 위해 응답자의 실제 답변을 기반으로 실시간 후속 질문을 생성하고, Contrastive Filtering과 반복적 피드백 루프를 통해 응답을 점진적으로 개선하도록 유도하는 설문 조사 에이전트입니다.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 🎯 연구 목적
+1. 온라인 설문에서 고품질 응답을 유도하는 설계 방법 탐구
+2. LLM 기반 설문 에이전트의 반복적 상호작용 효과 검증
+3. 대조 필터링을 활용한 저품질·악의적 응답 방지 메커니즘 제안
 
-## Available Scripts
+## ⭐ 주요 기능
+1. LLM 기반 실시간 설문 에이전트
+- 설문 웹페이지 하단에 에이전트를 임베드
+- 응답자의 텍스트 입력을 실시간으로 분석
+- 단순 입력 수집이 아닌 대화형 설문 경험 제공
 
-In the project directory, you can run:
+2. 응답 기반 후속 질문 생성 (Interview Probes)
+- 사전에 고정된 질문이 아닌, 응답자의 답변 내용에 따라 후속 질문 생성
+- 모호한 표현 → 구체화 유도
+- 불충분한 설명 → 추가 설명 요청
+- 주장 → 근거 및 이유 요청
 
-### `npm start`
+3. Contrastive Filtering을 통한 품질 유도
+응답을 다음 기준으로 평가:
+(1) 일관성 (Consistency)
+(2) 해석 가능성 (Interpretability)
+(3) 유용성 (Usefulness)
+(4) 관련성 (Relevancy)
+(5) 신뢰성 (Credibility)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+고품질 응답과 저품질 응답을 대조적으로 구분하여 후속 질문 방향을 조정
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+4. 반복적 피드백 루프 (Iterative Feedback Loop)
+하나의 질문에 대해 여러 차례 응답–피드백–수정을 반복
+응답이 사전에 정의된 품질 임계값에 도달해야 최종 제출 가능
+응답자의 사고를 점진적으로 심화
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+5. 악의적 응답 및 저노력 참여 방지
+의미 없는 문자열, 무성의한 답변 제출 제한
+보상만을 목적으로 한 참여자의 데이터 품질 저하 방지
+전체 데이터 신뢰도 향상
